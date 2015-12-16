@@ -45,7 +45,9 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.zip.GZIPOutputStream;
@@ -73,27 +75,47 @@ public class App {
      * The main method for the program.
      * 
      * @param args  command-line arguments. Use {@code -verbose} for detailed output.
+     * 										Use {@code -force} to force execution during 12am-3am hours.
      */
     public static void main(String[] args) {
         int i = 0;
         String arg;
         boolean vflag = false;
+        boolean fflag = false;
         
         while (i < args.length && args[i].startsWith("-")) {
-            arg = args[i++];
+           	arg = args[i++];
             
-            if (arg.equals("-verbose")) {
-                vflag = true;
+           	if (arg.equals("-verbose")) {
+            	vflag = true;
             }
-        }
-        
-        try {
-            getSchedules(vflag);
-        } catch (IOException | ParseException e) {
-            e.printStackTrace();
+            if (arg.equals("-force")) {
+            	fflag = true;
+            }
+        }	
+        	
+        /* 
+         * Checks if the current hour is between 12:00am and 3:00am.
+         * The sailing day starts at 3:00am, however the data
+         * from the ferries API updates to the next sailing day
+         * at 12:00am (thus loosing sailing times for the current 
+         * sailing day from 12-3am). Therefore during the hours 
+         * of 12-3am no requests to the API are made so we can
+         * keep the sailing information for the current sailing day.
+         *    
+         * TODO: find a better way to handle this situation.
+         */
+        Calendar now = new GregorianCalendar();
+        	
+        if ((now.get(Calendar.HOUR_OF_DAY) >= 3) || (fflag)) {
+          	try {
+           		getSchedules(vflag);
+           	} catch (IOException | ParseException e) {
+           		e.printStackTrace();
+           	}
         }
     }
-
+    
     /**
      * Retrieves highly detailed information pertaining to the routes.
      * <p>
@@ -112,7 +134,9 @@ public class App {
         List<CacheFlushDate> cacheTime = new ArrayList<CacheFlushDate>();
         DateFormat tripDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         Date now = new Date();
+            
         String tripDate = tripDateFormat.format(now);
+        
         Gson gson = new Gson();
         String cachedDateTime = "";
         int routeCount = 0;
@@ -187,6 +211,11 @@ public class App {
                 }
                 
                 String today = tripDateFormat.format(new Date());
+                Calendar faketime = new GregorianCalendar();
+                
+                faketime.add(Calendar.DATE, 1);
+                
+                today = tripDateFormat.format(faketime.getTime());
                 
                 // Retrieve schedule data for today and next six days for each route.
                 for (int j = 0; j < 7; j++) {
