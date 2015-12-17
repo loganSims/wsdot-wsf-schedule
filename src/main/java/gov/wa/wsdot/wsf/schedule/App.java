@@ -211,11 +211,6 @@ public class App {
                 }
                 
                 String today = tripDateFormat.format(new Date());
-                Calendar faketime = new GregorianCalendar();
-                
-                faketime.add(Calendar.DATE, 1);
-                
-                today = tripDateFormat.format(faketime.getTime());
                 
                 // Retrieve schedule data for today and next six days for each route.
                 for (int j = 0; j < 7; j++) {
