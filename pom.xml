@@ -4,7 +4,7 @@
   <groupId>gov.wa.wsdot.wsf.schedule</groupId>
   <artifactId>wsf-schedule</artifactId>
   <packaging>jar</packaging>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
   <name>wsf-schedule</name>
   <url>https://github.com/WSDOT/wsdot-wsf-schedule</url>
   <licenses>
